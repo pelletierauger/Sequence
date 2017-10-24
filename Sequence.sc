@@ -184,7 +184,9 @@ Sequence { // represents a sequence of notes.
 					resAry = resAry ++ [(type:\rest, dur:(dur-this.actualDur), beat:(d_or_s+last[\beat]))];
 				});
 				if(this.actualDur > dur, { // FIX
-					"dur smaller than actual dur is not yet supported.".error;
+					// "dur smaller than actual dur is not yet supported.".error;
+					var last = resAry.last;
+					last[\dur]
 				});
 			});
 			if(this.actualDur < this.actualDur.ceil, {
@@ -199,7 +201,7 @@ Sequence { // represents a sequence of notes.
 		if(list.size == 0, {
 			list = [(type:\rest, dur:1)];
 		});
-		^Pchain(protoEvent, Pseq(list));
+		^Pchain(Pseq(list), protoEvent);
 	}
 	play {
 		| clock protoEvent quant |
@@ -254,11 +256,49 @@ Sequence { // represents a sequence of notes.
 		}));
 		^copy;
 	}
+	durs {
+		^this.asList.collect(_[\dur]);
+	}
+	stretchBy {
+		| factor |
+		var list = this.rawList;
+		list = list.collect({
+			| event |
+			event[\beat] = event[\beat] * factor;
+			event[\sustain] = event[\sustain] * factor;
+			// event[\dur] = event[\dur] * factor;
+			event;
+		});
+		this.list_(list);
+	}
+	stretchTo {
+		| dur |
+		^this.stretchBy(dur/this.actualDur); // FIX: may need to use this.dur instead of this.actualDur? not sure.
+	}
+	endDur {
+		^this.asList.last[\dur];
+	}
+	endDur_ {
+		| num |
+		var list = this.asList;
+		var last = list.last;
+		last[\dur] = num;
+		list.put(list.size-1, last);
+		this.list_(list);
+	}
+	pianoRoll {
+		var win, pr;
+		win = Window("Seq");
+		pr = PianoRoll(win, win.view.bounds, this).resize_(5);
+		win.front;
+		^pr;
+	}
 }
 
 + Pattern {
 	asSequence {
 		| dur maxdur=64 | // 'maxdur' will prevent infinite-length patterns from freezing SC. setting to 'inf' is NOT recommended.
+		"Pattern.asSequence isn't implemented yet...".error;
 		// FIX
 	}
 }
