@@ -198,9 +198,21 @@ Sequence { // represents a sequence of notes.
 	}
 	asPattern {
 		var list = this.asList;
+        var activatedList = [];
 		if(list.size == 0, {
 			list = [(type:\rest, dur:1)];
 		});
+        list.do({
+            |item, i|
+            if (item.deactivated == true, {
+                item.type = \rest;
+            });
+/*            if (item.deactivated == true, {
+
+            }, {
+               activatedList = activatedList.add(item);
+            });*/
+        });
 		^Pchain(Pseq(list), protoEvent);
 	}
 	play {
